@@ -35,39 +35,30 @@
                     </tr>
                      <tr>
                         <td>
-                            &nbsp;<asp:CheckBox ID="CheckBox1" runat="server" AutoPostBack="True" OnCheckedChanged="CheckBox1_CheckedChanged" Text="Google Map" />
-						<span></span>:<br />
-                            &nbsp;<asp:CheckBox ID="CheckBox2" runat="server" AutoPostBack="True" OnCheckedChanged="CheckBox2_CheckedChanged" Text="Open Street Map" />
+                            <strong>Background Map</strong><br />
+                            <asp:RadioButton id="RadioButton1" Text="Google Maps" TextAlign="Right" AutoPostBack="True" Checked="True" OnCheckedChanged="RadioButton1_CheckedChanged" GroupName="bgmap" runat="server" /><br>
+                            <asp:RadioButton id="RadioButton2" Text="OpenStreeMap" TextAlign="Right" AutoPostBack="True"  Checked="false" OnCheckedChanged="RadioButton2_CheckedChanged" GroupName="bgmap" runat="server" /><br>
+                            
 						    <img src="WD.jpg" alt="ADB" style="height: 121px; width: 142px"/>
-				        </td>
+
+</td>
                     </tr>
                 </table>
                             <br />
-                            
                             <asp:CheckBoxList ID="layerList" runat="server" AutoPostBack="True">
                             </asp:CheckBoxList>
-                            
             </td>
-            
 						<td style="vertical-align:top; width:600px; height:700px"">
                                  <aspmap:Map id="map" EnableSession="true" runat="server" Width="600px" 
                                          Height="700px" BackColor="#E6E6FA" ImageFormat="Gif" SmoothingMode="AntiAlias"
 								         FontQuality="ClearType" MapTool="Pan" onmarkerclick="map_MarkerClick" style="margin-top: 0px"></aspmap:Map>
 					         <asp:Label ID="status" runat="server"></asp:Label>
-					
             </td>
             <td style="vertical-align:top; width:200px; height:500px">
                <aspmap:Legend id="legend" runat="server" Width="150px"  ImageFormat="Png" />
             </td>
         </tr>
-        
-                                
     </table>
-
-   
-
-
-
     <div>
         <asp:Panel ID="modal_div_chart" runat="server" Style="display: none" CssClass="modal-div">
             <asp:Panel ID="modal_div_drag_chart" runat="server" Height="20px" CssClass="modal-div-drag">

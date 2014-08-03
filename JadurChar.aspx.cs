@@ -29,18 +29,20 @@ using Highcharts.Core.Data.Chart;
 using Highcharts.UI;
 using Highcharts.Core.Options;
 
-
-
-
-
 using System.Collections.ObjectModel;
 
+public partial class App
+{
+        static public GoogleMapsLayer gml = new GoogleMapsLayer();
+        static public OSMLayer osmLayer = new OSMLayer("http://a.tile.openstreetmap.org/{z}/{x}/{y}.png");
+        static public AspMap.Point center = new AspMap.Point();
+        static public AspMap.Rectangle extent = new AspMap.Rectangle();
+}
 
 public partial class Kulkandi : System.Web.UI.Page
 {
     protected void Page_Load(object sender, System.EventArgs e)
     {
-
         if (!IsPostBack)
         {
             if (map.LayerCount > 0)
@@ -51,58 +53,38 @@ public partial class Kulkandi : System.Web.UI.Page
                 map.Hotspots.Clear();
             if (map.MapShapes.Count > 0)
                 map.MapShapes.Clear();
-            map.MapUnit = MeasureUnit.Degree;
+            map.MapUnit = MeasureUnit.Meter;
             map.ScaleBar.Visible = true;
             map.ScaleBar.BarUnit = UnitSystem.Metric;
-            //overviewMap.MapTool = MapTool.Point;
-            //overviewMap.ClientScript = ClientScriptType.NoScript;
+            map.CoordinateSystem = new AspMap.CoordSystem(CoordSystemCode.PCS_PopularVisualisationMercator);
 
-            //Add_WL_Stations_Markers();
+            App.gml.MapType = GoogleMapType.Normal;
+            map.BackgroundLayer = App.gml;
+            map.ImageFormat = ImageFormat.Png;
+            map.ImageOpacity = 0.75;
+
             AddShapefile();
+
+            AspMap.Rectangle fullextent = new AspMap.Rectangle();
+            fullextent.Bottom = 2920137;
+            fullextent.Top = 2957006;
+            fullextent.Left = 9972299;
+            fullextent.Right = 10025559;
+            map.FullExtent = fullextent;
+            map.Extent = fullextent;
             FillLayerList();
             //AddOverviewMapLayers();
-            
         }
-           
-
         hcVendas.Exporting = new Exporting { enabled = true };
-
-    }
-
-    void AddOSMLayer()
-    {
-        OSMLayer osmLayer = new OSMLayer("http://a.tile.openstreetmap.org/{z}/{x}/{y}.png");
-
-        map.BackgroundLayer = osmLayer;
-    }
-
-    void AddGoogleMapsLayer()
-    {
-        // You have to sign up for a Maps API key at http://code.google.com/apis/maps/signup.html.
-
-        GoogleMapsLayer gml = new GoogleMapsLayer();
-
-        gml.MapType = GoogleMapType.Normal;
-
-        // When a GoogleMapsLayer object is set as a background layer: 1) the coordinate system of the
-        // Map control will be set to PCS_PopularVisualisationMercator; 2) 20 zoom levels
-        // from Google Maps will be added to the ZoomLevels collection of the Map control;
-        // 3) the FullExtent property of the Map control will be set to the full extent of Google Maps.
-
-        map.BackgroundLayer = gml;
     }
 
     protected void map_MarkerClick(object sender, MarkerClickEventArgs e)
     {
         modal_chart.Show();
-
-
         string val = map.Markers[e.MarkerIndex].Argument;
-
         string markerId = val.Substring(0, val.IndexOf("_"));
         val = val.Substring(val.IndexOf("_") + 1, val.Length - (val.IndexOf("_") + 1));
         string stationName = val;
-
         DataTable dtStation = GetDataTable("select * from wl_station where station_name='" + stationName + "'");
         double dangerLevel = 0.0;
         double recordLevel = 0.0;
@@ -113,9 +95,6 @@ public partial class Kulkandi : System.Web.UI.Page
             dangerLevel = Convert.ToDouble(dtStation.Rows[0]["Danger_Level"]);
             recordLevel = Convert.ToDouble(dtStation.Rows[0]["RHWL"]);
         }
-
-
-
         DateTime date = DateTime.Now;
         DateTime waterLevelDate = DateTime.Now;
         double waterLevel = 0.0;
@@ -141,7 +120,6 @@ public partial class Kulkandi : System.Web.UI.Page
                             {
                                 pointRecorded.Add(new Highcharts.Core.Point(Convert.ToInt64(date.Subtract(new DateTime(1970, 1, 1)).TotalMilliseconds), recordLevel));
                                 pointDanger.Add(new Highcharts.Core.Point(Convert.ToInt64(date.Subtract(new DateTime(1970, 1, 1)).TotalMilliseconds), dangerLevel));
-
                             }
                             isFirstRow = false;
 
@@ -159,9 +137,7 @@ public partial class Kulkandi : System.Web.UI.Page
                         }
                         catch
                         {
-
                         }
-
                     }//end
                 }//end foreach
 
@@ -169,7 +145,6 @@ public partial class Kulkandi : System.Web.UI.Page
                 //cd.
                 pointRecorded.Add(new Highcharts.Core.Point(Convert.ToInt64(date.Subtract(new DateTime(1970, 1, 1)).TotalMilliseconds), recordLevel));
                 pointDanger.Add(new Highcharts.Core.Point(Convert.ToInt64(date.Subtract(new DateTime(1970, 1, 1)).TotalMilliseconds), dangerLevel));
-
 
                 if (hcVendas.XAxis.Count > 0)
                     hcVendas.XAxis.Clear();
@@ -200,14 +175,12 @@ public partial class Kulkandi : System.Web.UI.Page
                 y.gridLineWidth = 1;
 
                 PlotBands plotBands = new PlotBands();
-
                 PlotBand plotBand = new PlotBand();
                 plotBand.from = 0;
                 plotBand.to = 5.5;
                 plotBand.color = "#FFFFFF";
                 plotBands.Add(plotBand);
                 y.plotBands = plotBands;
-
 
                 hcVendas.YAxis.Add(y);
                 //YAxis y = new YAxis();
@@ -257,10 +230,8 @@ public partial class Kulkandi : System.Web.UI.Page
 
         }
 
-
         if (dtStation != null && dtStation.Rows.Count > 0)
         {
-
             Table tbl = new Table();
             tbl.CellPadding = 3;
             tbl.CssClass = "info-table";
@@ -312,8 +283,6 @@ public partial class Kulkandi : System.Web.UI.Page
             tr.Cells.Add(tc);
             tbl.Rows.Add(tr);
 
-
-
             tr = new TableRow();
             tc = new TableCell();
             tc.CssClass = "info-table-td-center";
@@ -348,75 +317,9 @@ public partial class Kulkandi : System.Web.UI.Page
             //dangerLevel = Convert.ToDouble(dtStation.Rows[0]["Danger_Level"]);
             //recordLevel = Convert.ToDouble(dtStation.Rows[0]["RHWL"]);
         }
-
         modal_chart.Show();
     }
 
-
-
-    //protected void Add_WL_Stations_Markers()
-    //{
-    //    if (map.Markers.Count > 0)
-    //        map.Markers.Clear();
-
-    //    DataTable dt = GetDataTable("select * from WL_Station");
-    //    if (dt != null)
-    //    {
-    //        StringBuilder sb;
-    //        MarkerSymbol mSymbol = new MarkerSymbol("images/marker-normal.png", 12, 23);
-    //        string wLType = string.Empty;
-    //        double wlToday = 0.0;
-    //        double wlDanger = 0.0;
-    //        DateTime curDate = System.DateTime.Now;
-    //        foreach (DataRow row in dt.Rows)
-    //        {
-    //            AspMap.Point pnt = new AspMap.Point(Convert.ToDouble(row["longitude"].ToString()), Convert.ToDouble(row["latitude"].ToString()));
-    //            sb = new StringBuilder();
-    //            sb.Append("");
-    //            string cd = "<div class=\"marker_info\"><table cellpadding=\"0\" cellspacing=\"0\" class=\"marker_table\"><tr><td colspan=\"2\" class=\"marker_top_td\">Station Name: " + row["Station_Name"].ToString() + "</td></tr><tr><td class=\"marker_left_td\">Denger Level</td><td class=\"marker_right_td\">" + row["Danger_Level"].ToString() + "</td></tr><tr><td class=\"marker_left_td\">Yesterday Level</td><td class=\"marker_right_td\">" + row["WL_Yesterday"].ToString() + "</td></tr><tr><td class=\"marker_left_td\">Today Level</td><td class=\"marker_right_td\">" + row["WL_Today"].ToString() + "</td></tr><tr><td class=\"marker_left_td\">24 Hours Level</td><td class=\"marker_right_td\">" + row["WL_24Hrs"].ToString() + "</td></tr><tr><td class=\"marker_left_td\">48 Hours Level</td><td class=\"marker_right_td\">" + row["WL_48Hrs"].ToString() + "</td></tr><tr><td class=\"marker_left_td\">72 Hours Level</td><td class=\"marker_right_td\">" + row["WL_72Hrs"].ToString() + "</td></tr></table></div>";
-    //            string cd = "<div class=\"marker_info\"><table cellpadding=\"0\" cellspacing=\"0\" class=\"marker_table\"><tr><td colspan=\"2\" class=\"marker_top_td\">Station Name: " + row["Station_Name"].ToString() + "</td></tr><tr><td class=\"marker_left_td\">Denger Level</td><td class=\"marker_right_td\">" + row["Danger_Level"].ToString() + "</td></tr><tr><td class=\"marker_left_td\">" + curDate.AddDays(-1).ToString("dd-MMM-yyyy") + "</td><td class=\"marker_right_td\">" + row["WL_Yesterday"].ToString() + "</td></tr><tr><td class=\"marker_left_td\">" + curDate.ToString("dd-MMM-yyyy") + "</td><td class=\"marker_right_td\">" + row["WL_Today"].ToString() + "</td></tr><tr><td class=\"marker_left_td\">" + curDate.AddDays(1).ToString("dd-MMM-yyyy") + "</td><td class=\"marker_right_td\">" + row["WL_24Hrs"].ToString() + "</td></tr><tr><td class=\"marker_left_td\">" + curDate.AddDays(2).ToString("dd-MMM-yyyy") + "</td><td class=\"marker_right_td\">" + row["WL_48Hrs"].ToString() + "</td></tr><tr><td class=\"marker_left_td\">" + curDate.AddDays(3).ToString("dd-MMM-yyyy") + "</td><td class=\"marker_right_td\">" + row["WL_72Hrs"].ToString() + "</td></tr></table></div>";
-
-    //            wlToday = Convert.ToDouble(row["WL_Today"].ToString());
-    //            wlDanger = Convert.ToDouble(row["Danger_Level"].ToString());
-
-    //            if (wlToday < (wlDanger - 0.5))
-    //                wLType = "normal";
-    //            else if ((wlToday >= (wlDanger - 0.5)) && (wlToday < wlDanger))
-    //                wLType = "warning";
-    //            else if ((wlToday >= wlDanger) && (wlToday < wlDanger + 1.0))
-    //                wLType = "danger";
-    //            else if (wlToday >= wlDanger + 1.0)
-    //                wLType = "severe";
-
-    //            switch (wLType)
-    //            {
-    //                case "normal":
-    //                    mSymbol = new MarkerSymbol("images/marker-normal.png", 12, 23);
-    //                    break;
-    //                case "warning":
-    //                    mSymbol = new MarkerSymbol("images/marker-warning.png", 12, 23);
-    //                    break;
-    //                case "danger":
-    //                    mSymbol = new MarkerSymbol("images/marker-danger.png", 12, 23);
-    //                    break;
-    //                case "severe":
-    //                    mSymbol = new MarkerSymbol("images/marker-severe.png", 12, 23);
-    //                    break;
-    //                default:
-    //                    break;
-    //            }
-
-
-
-    //            AspMap.Web.Marker marker = new AspMap.Web.Marker(pnt, mSymbol, cd);
-    //            marker.Clickable = true;
-    //            marker.Argument = row["Station_ID"].ToString() + "_" + row["Station_Name"].ToString();
-    //            map.Markers.Add(marker);
-    //        }
-    //    }
-    //    dt.Dispose();
-
-    //}
 
     protected void Page_PreRender(object sender, System.EventArgs e)
     {
@@ -443,39 +346,6 @@ public partial class Kulkandi : System.Web.UI.Page
         }
     }
 
-
-    //private void AddOverviewMapLayers()
-    //{
-    //    string LayerFolder = MapPath("MAPS/GEO/");
-
-    //    AspMap.Layer layer = overviewMap.AddLayer(LayerFolder + "Area.shp");
-    //    layer.Name = "Area";
-    //    layer.Symbol.Size = 1;
-    //    layer.Symbol.LineColor = Color.FromArgb(199, 172, 116);
-    //    layer.Symbol.FillColor = Color.FromArgb(242, 236, 223);
-    //}
-
-    //private void UpdateOverviewMapProperties()
-    //{
-    //    overviewMap.ZoomFull();
-    //    overviewMap.MapShapes.Clear();
-
-    //    AspMap.Rectangle extent = map.Extent;
-
-    //    // draw the extent of the map as a rectangle
-    //    MapShape mapShape = overviewMap.MapShapes.Add(extent);
-    //    mapShape.Symbol.Size = 2;
-    //    mapShape.Symbol.LineColor = Color.Red;
-    //    mapShape.Symbol.FillStyle = FillStyle.Invisible;
-
-    //    // draw the extent of the map as a point (if it is too small to be displayed as a rectangle)
-    //    mapShape = overviewMap.MapShapes.Add(new AspMap.Point(extent.Left, extent.Top));
-    //    mapShape.Symbol.Size = 2;
-    //    mapShape.Symbol.LineColor = Color.Red;
-    //    mapShape.Symbol.PointStyle = PointStyle.Square;
-    //}
-
-
     private void FillLayerList()
     {
         if (IsPostBack) return;
@@ -488,7 +358,6 @@ public partial class Kulkandi : System.Web.UI.Page
         }
     }
 
-
     private void UpdateLayerVisibility()
     {
         if (!IsPostBack) return;
@@ -499,170 +368,10 @@ public partial class Kulkandi : System.Web.UI.Page
         }
     }
 
-
-    //private void UpdateLayerProperties()
-    //{
-    //    AspMap.Layer Layer;
-    //    AspMap.Feature feature;
-    //    AspMap.FeatureRenderer renderer;
-
-    //    //----------------------------------------------------
-    //    Layer = map["Area"];
-
-    //    Layer.Symbol.FillColor = Color.WhiteSmoke;
-    //    //layer.LabelField = "STATE_ABBR";
-    //    Layer.ShowLabels = true;
-    //    Layer.LabelFont.Name = "Verdana";
-    //    Layer.LabelFont.Size = 12;
-    //    Layer.LabelFont.Bold = true;
-    //    Layer.LabelStyle = LabelStyle.PolygonCenter;
-    //    Layer.Description = "Surveyed Area";
-    //    Layer.CoordinateSystem = CoordSystem.WGS1984;
-
-
-    //    //----------------------------------------------------
-    //    //Layer = map["Today"];
-    //    //Layer.CoordinateSystem = CoordSystem.WGS1984;
-
-
-    //    //Layer = map["park"];
-
-    //    //Layer.LabelField = "NAME";
-    //    //Layer.ShowLabels = true;
-    //    //Layer.LabelFont.Outline = true;
-    //    //Layer.LabelFont.Size = 11;
-    //    //Layer.LabelFont.Bold = true;
-    //    //Layer.Symbol.FillColor = Color.FromArgb(143, 175, 47);
-    //    //Layer.Symbol.LineColor = Layer.Symbol.FillColor;
-
-    //    //----------------------------------------------------
-    //    //Layer = map["waterarea"];
-
-    //    //Layer.LabelField = "NAME";
-    //    //Layer.ShowLabels = true;
-    //    //Layer.LabelFont.Outline = true;
-    //    //Layer.LabelFont.Size = 12;
-    //    //Layer.Symbol.FillColor = Color.FromArgb(159, 159, 223);
-    //    //Layer.Symbol.LineColor = Layer.Symbol.FillColor;
-
-    //    //----------------------------------------------------
-    //    //Layer = map["water"];
-
-    //    //Layer.LabelField = "NAME";
-    //    //Layer.ShowLabels = true;
-    //    //Layer.LabelFont.Size = 9;
-    //    //Layer.Symbol.FillColor = Color.FromArgb(159, 159, 223);
-    //    //Layer.Symbol.LineColor = Layer.Symbol.FillColor;
-    //    //Layer.LabelFont.Color = Color.FromArgb(0, 0, 128);
-
-    //    //----------------------------------------------------
-    //    //Layer = map["airport"];
-
-    //    //Layer.LabelField = "NAME";
-    //    //Layer.ShowLabels = true;
-    //    //Layer.LabelFont.Outline = true;
-    //    //Layer.LabelFont.Size = 11;
-    //    //Layer.Symbol.FillColor = Color.FromArgb(43, 147, 43);
-
-    //    //----------------------------------------------------
-    //    //Layer = map["street"];
-
-    //    //Layer.LabelField = "NAME";
-    //    //Layer.LabelFont.Size = 10;
-
-    //    //Layer.Symbol.LineStyle = LineStyle.Road;
-    //    //Layer.Symbol.LineColor = Color.FromArgb(171, 158, 137);
-    //    //Layer.Symbol.InnerColor = Color.White;
-
-    //    //if (map.MapScale >= 75000)
-    //    //    Layer.Symbol.Size = 3;
-    //    //else if (map.MapScale >= 37000)
-    //    //{
-    //    //    Layer.Symbol.Size = 4;
-    //    //    Layer.ShowLabels = true;
-    //    //    Layer.LabelFont.Outline = true;
-    //    //}
-    //    //else
-    //    //{
-    //    //    Layer.Symbol.Size = 6;
-    //    //    Layer.ShowLabels = true;
-    //    //    Layer.LabelFont.Outline = true;
-    //    //}
-
-    //    //----------------------------------------------------
-    //    //Layer = map["railroad"];
-
-    //    //Layer.LabelField = "NAME";
-    //    //Layer.ShowLabels = true;
-    //    //Layer.LabelFont.Outline = true;
-    //    //Layer.LabelFont.Size = 10;
-    //    //Layer.Symbol.LineStyle = LineStyle.Railroad;
-
-    //    //----------------------------------------------------
-    //    //Layer = map["institution"];
-
-    //    //Layer.LabelField = "NAME";
-    //    //Layer.ShowLabels = true;
-    //    //Layer.LabelFont.Name = "Times New Roman";
-    //    //Layer.LabelFont.Outline = true;
-    //    //Layer.LabelFont.Size = 12;
-    //    //Layer.UseDefaultSymbol = false;
-
-    //    //renderer = Layer.Renderer;
-    //    //renderer.Field = "FCC";
-
-    //    // cemetery symbol
-    //    //feature = renderer.Add();
-    //    //feature.Value = "D82";
-    //    //feature.Symbol.PointStyle = PointStyle.Bitmap;
-    //    //feature.Symbol.Bitmap = MapPath("symbols/cemetery.bmp");
-    //    //feature.Symbol.Size = 16;
-    //    //feature.Symbol.TransparentColor = Color.White;
-    //    //feature.Description = "Cemetery";
-
-    //    // school symbol
-    //    //feature = renderer.Add();
-    //    //feature.Value = "D43";
-    //    //feature.Symbol.PointStyle = PointStyle.Bitmap;
-    //    //feature.Symbol.Bitmap = MapPath("symbols/school.bmp");
-    //    //feature.Symbol.Size = 16;
-    //    //feature.Symbol.TransparentColor = Color.White;
-    //    //feature.Description = "School";
-
-    //    // church symbol
-    //    //feature = renderer.Add();
-    //    //feature.Value = "D44";
-    //    //feature.Symbol.PointStyle = PointStyle.Bitmap;
-    //    //feature.Symbol.Bitmap = MapPath("symbols/church.bmp");
-    //    //feature.Symbol.Size = 16;
-    //    //feature.Symbol.TransparentColor = Color.White;
-    //    //feature.Description = "Church";
-
-    //    // hospital symbol
-    //    //feature = renderer.Add();
-    //    //feature.Value = "D31";
-    //    //feature.Symbol.PointStyle = PointStyle.Bitmap;
-    //    //feature.Symbol.Bitmap = MapPath("symbols/hospital.bmp");
-    //    //feature.Symbol.Size = 16;
-    //    //feature.Symbol.TransparentColor = Color.White;
-    //    //feature.Description = "Hospital";
-    //}
-
-
-
     protected void zoomFull_Click(object sender, System.Web.UI.ImageClickEventArgs e)
     {
         map.ZoomFull();
     }
-
-
-    //protected void overviewMap_PointTool(object sender, PointToolEventArgs e)
-    //{
-    //    AspMap.Rectangle extent = map.Extent;
-    //    extent.Offset(e.Point.X - extent.Center.X, e.Point.Y - extent.Center.Y);
-    //    map.Extent = extent;
-    //}
-
 
     void AddShapefile()
     {
@@ -708,10 +417,6 @@ public partial class Kulkandi : System.Web.UI.Page
         layer.LabelStyle = LabelStyle.PolygonCenter;
         layer.Description = "Surveyed Area";
 
-        // The coordinate system of the shapefile must be set explicitly or must
-        // be specified in a .prj file.
-        //layer.CoordinateSystem = CoordSystem.WGS1984;
-
         layer = map.AddLayer(MapPath("MAPS/GEO/Homestead.shp"));
         layer.Symbol.FillColor = Color.FromArgb(178, 178, 178);
         layer.Symbol.LineColor = Color.FromArgb(178, 178, 178);
@@ -722,11 +427,6 @@ public partial class Kulkandi : System.Web.UI.Page
         layer.LabelFont.Bold = true;
         layer.LabelStyle = LabelStyle.PolygonCenter;
         layer.Description = "Home Stead";
-
-        // The coordinate system of the shapefile must be set explicitly or must
-        // be specified in a .prj file.
-        //layer.CoordinateSystem = CoordSystem.WGS1984;   
-
 
         layer = map.AddLayer(MapPath("MAPS/GEO/River_Khal.shp"));
         layer.Symbol.LineColor = Color.FromArgb(64, 176, 235);
@@ -750,7 +450,6 @@ public partial class Kulkandi : System.Web.UI.Page
         layer.LabelFont.Color = Color.Red;
         layer.Symbol.LineStyle = LineStyle.Solid;
         layer.Description = "Main_Road";
-
 
         layer = map.AddLayer(MapPath("MAPS/GEO/Local_Road.shp"));
         layer.Symbol.LineStyle = LineStyle.Road;
@@ -1008,51 +707,38 @@ public partial class Kulkandi : System.Web.UI.Page
         return retVal;
     }
 
-
-    protected void CheckBox1_CheckedChanged(object sender, EventArgs e)
+    protected void RadioButton1_CheckedChanged(object sender, EventArgs e)
     {
-        if (CheckBox1.Checked)
+        if (RadioButton1.Checked)
         {
-
-            AddGoogleMapsLayer();
-            map.ImageFormat = ImageFormat.Png;
-            map.ImageOpacity = 0.5;
-            map.CenterAt(map.CoordinateSystem.FromWgs84(89.82, 25.51));
-            map.ZoomLevel = 13;
-
-
+            App.extent = map.Extent;
+            App.gml.MapType = GoogleMapType.Normal;
+            map.BackgroundLayer = App.gml;
+            map.Extent = App.extent;
         }
         else
         {
-            map.BackgroundLayer = null;
-
+            App.extent = map.Extent;
+            map.BackgroundLayer = App.osmLayer;
+            map.Extent = App.extent;
         }
-        //if (!IsPostBack)
-        //{
-
-        //    map.CenterAt(map.CoordinateSystem.FromWgs84(89.75, 25.12));
-        //}
     }
 
-    protected void CheckBox2_CheckedChanged(object sender, EventArgs e)
+    protected void RadioButton2_CheckedChanged(object sender, EventArgs e)
     {
-        if (CheckBox2.Checked)
+        if (RadioButton2.Checked)
         {
-
-            AddOSMLayer();
-            map.ImageFormat = ImageFormat.Png;
-            map.ImageOpacity = 0.5;
-            map.CenterAt(map.CoordinateSystem.FromWgs84(89.82, 25.51));
-            map.ZoomLevel = 13;
-
-
+            App.extent = map.Extent;
+            map.BackgroundLayer = App.osmLayer;
+            map.Extent = App.extent;
         }
         else
         {
-            map.BackgroundLayer = null;
-
+            App.extent = map.Extent;
+            App.gml.MapType = GoogleMapType.Normal;
+            map.BackgroundLayer = App.gml;
+            map.Extent = App.extent;
         }
-       
     }
 
     //protected void ListBox1_SelectedIndexChanged(object sender, EventArgs e)
