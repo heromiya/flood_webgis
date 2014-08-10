@@ -39,13 +39,9 @@
                             <asp:RadioButton id="RadioButton1" Text="Google Maps" TextAlign="Right" AutoPostBack="True" Checked="True" OnCheckedChanged="RadioButton1_CheckedChanged" GroupName="bgmap" runat="server" /><br>
                             <asp:RadioButton id="RadioButton2" Text="OpenStreeMap" TextAlign="Right" AutoPostBack="True"  Checked="false" OnCheckedChanged="RadioButton2_CheckedChanged" GroupName="bgmap" runat="server" /><br>
                             <strong>Inudation</strong><br />
-                            <asp:RadioButton id="RadioButton3" Text="Day 0" TextAlign="Right" AutoPostBack="True" Checked="True"  OnCheckedChanged="Inudation_Day0" GroupName="inmap" runat="server" /><br>
-                            <asp:RadioButton id="RadioButton4" Text="Day 1" TextAlign="Right" AutoPostBack="True" Checked="false" OnCheckedChanged="Inudation_Day1" GroupName="inmap" runat="server" /><br>
-                            <asp:RadioButton id="RadioButton5" Text="Day 2" TextAlign="Right" AutoPostBack="True" Checked="false" OnCheckedChanged="Inudation_Day2" GroupName="inmap" runat="server" /><br>
-                            <asp:RadioButton id="RadioButton6" Text="Day 3" TextAlign="Right" AutoPostBack="True" Checked="false" OnCheckedChanged="Inudation_Day3" GroupName="inmap" runat="server" /><br>
-                            <asp:RadioButton id="RadioButton7" Text="Day 4" TextAlign="Right" AutoPostBack="True" Checked="false" OnCheckedChanged="Inudation_Day4" GroupName="inmap" runat="server" /><br>
-                            <asp:RadioButton id="RadioButton8" Text="Day 5" TextAlign="Right" AutoPostBack="True" Checked="false" OnCheckedChanged="Inudation_Day5" GroupName="inmap" runat="server" /><br>
-                            
+                            <asp:RadioButtonList ID="innudationList" runat="server" AutoPostBack="True">
+                            </asp:RadioButtonList>
+
 						    <img src="WD.jpg" alt="ADB" style="height: 121px; width: 142px"/>
 
 </td>

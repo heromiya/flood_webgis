@@ -33,55 +33,53 @@ using System.Collections.ObjectModel;
 
 public partial class App
 {
-        static public GoogleMapsLayer gml = new GoogleMapsLayer();
-        static public OSMLayer osmLayer = new OSMLayer("http://a.tile.openstreetmap.org/{z}/{x}/{y}.png");
-        static public AspMap.Layer inundation0 = new AspMap.Layer();
-        static public AspMap.Layer inundation1 = new AspMap.Layer();
-        static public AspMap.Layer inundation2 = new AspMap.Layer();
-        static public AspMap.Layer inundation3 = new AspMap.Layer();
-        static public AspMap.Layer inundation4 = new AspMap.Layer();
-        static public AspMap.Layer inundation5 = new AspMap.Layer();
-
-        static public AspMap.Point center = new AspMap.Point();
-        static public AspMap.Rectangle extent = new AspMap.Rectangle();
+    static public GoogleMapsLayer gml = new GoogleMapsLayer();
+    static public OSMLayer osmLayer = new OSMLayer("http://a.tile.openstreetmap.org/{z}/{x}/{y}.png");
+    static public AspMap.Point center = new AspMap.Point();
+    static public AspMap.Rectangle extent = new AspMap.Rectangle();
+    static public AspMap.Layer[] inundation = new AspMap.Layer[7];
+    static public AspMap.Rectangle fullextent = new AspMap.Rectangle();
 }
 
 public partial class Kulkandi : System.Web.UI.Page
 {
     protected void Page_Load(object sender, System.EventArgs e)
     {
-        if (!IsPostBack)
+        for (int i = 0; i < 7; i++)
         {
-            if (map.LayerCount > 0)
-                map.RemoveAllLayers();
-            if (map.BackgroundLayer != null)
-                map.BackgroundLayer = null;
-            if (map.Hotspots.Count > 0)
-                map.Hotspots.Clear();
-            if (map.MapShapes.Count > 0)
-                map.MapShapes.Clear();
-            map.MapUnit = MeasureUnit.Meter;
-            map.ScaleBar.Visible = true;
-            map.ScaleBar.BarUnit = UnitSystem.Metric;
-            map.CoordinateSystem = new AspMap.CoordSystem(CoordSystemCode.PCS_PopularVisualisationMercator);
-
-            App.gml.MapType = GoogleMapType.Normal;
-            map.BackgroundLayer = App.gml;
-            map.ImageFormat = ImageFormat.Png;
-            map.ImageOpacity = 0.75;
-
-            AddShapefile();
-
-            AspMap.Rectangle fullextent = new AspMap.Rectangle();
-            fullextent.Bottom = 2920137;
-            fullextent.Top = 2957006;
-            fullextent.Left = 9972299;
-            fullextent.Right = 10025559;
-            map.FullExtent = fullextent;
-            map.Extent = fullextent;
-            FillLayerList();
-            //AddOverviewMapLayers();
+            App.inundation[i] = new AspMap.Layer();
         }
+            if (!IsPostBack)
+            {
+                if (map.LayerCount > 0)
+                    map.RemoveAllLayers();
+                if (map.BackgroundLayer != null)
+                    map.BackgroundLayer = null;
+                if (map.Hotspots.Count > 0)
+                    map.Hotspots.Clear();
+                if (map.MapShapes.Count > 0)
+                    map.MapShapes.Clear();
+                map.MapUnit = MeasureUnit.Meter;
+                map.ScaleBar.Visible = true;
+                map.ScaleBar.BarUnit = UnitSystem.Metric;
+                map.CoordinateSystem = new AspMap.CoordSystem(CoordSystemCode.PCS_PopularVisualisationMercator);
+
+                App.gml.MapType = GoogleMapType.Normal;
+                map.BackgroundLayer = App.gml;
+                map.ImageFormat = ImageFormat.Png;
+                map.ImageOpacity = 0.75;
+
+                AddShapefile();
+
+                App.fullextent.Bottom = 2929924.996;
+                App.fullextent.Top = 2950432.713;
+                App.fullextent.Left = 9994310.118;
+                App.fullextent.Right = 10004636.304;
+                map.FullExtent = App.fullextent;
+                map.Extent = App.fullextent;
+                FillLayerList();
+                //AddOverviewMapLayers();
+            }
         hcVendas.Exporting = new Exporting { enabled = true };
     }
 
@@ -373,56 +371,42 @@ public partial class Kulkandi : System.Web.UI.Page
         {
             map[item.Value].Visible = item.Selected;
         }
+        foreach (ListItem item in innudationList.Items)
+        {
+            if(item.Text != "Disable inudation map"){
+                map[item.Value].Visible = item.Selected;
+            }
+        }
+
     }
 
     protected void zoomFull_Click(object sender, System.Web.UI.ImageClickEventArgs e)
     {
-        map.ZoomFull();
+        map.Extent = App.fullextent;
     }
 
     void AddShapefile()
     {
         AspMap.Layer layer;
-
-        App.inundation0 = map.AddLayer(MapPath("InundationMap/inundation_day0.tif"));
-        App.inundation0.Description = "Inundation Day 0";
-        App.inundation0.CoordinateSystem = new AspMap.CoordSystem(CoordSystemCode.PCS_PopularVisualisationMercator);
-        App.inundation0.Visible = false;
-
-        layer = map.AddLayer(MapPath("InundationMap/1Day Inundation Map.jpg"));
-        layer.Description = "Inundation Map 1 Today";
-        layer.CoordinateSystem = CoordSystem.WGS1984;
-        layer.Visible = false;
-
-        layer = map.AddLayer(MapPath("InundationMap/2Day Inundation Map.jpg"));
-        layer.Description = "Inundation Map 2 Today";
-        layer.CoordinateSystem = CoordSystem.WGS1984;
-        layer.Visible = false;
-
-        layer = map.AddLayer(MapPath("InundationMap/3Day Inundation Map.jpg"));
-        layer.Description = "Inundation Map 3 Today";
-        layer.CoordinateSystem = CoordSystem.WGS1984;
-        layer.Visible = false;
-
-        layer = map.AddLayer(MapPath("InundationMap/4Day Inundation Map.jpg"));
-        layer.Description = "Inundation Map 4 Today";
-        layer.CoordinateSystem = CoordSystem.WGS1984;
-        layer.Visible = false;
-
-        layer = map.AddLayer(MapPath("InundationMap/5Day Inundation Map.jpg"));
-        layer.Description = "Inundation Map 5 Today";
-        layer.CoordinateSystem = CoordSystem.WGS1984;
-        layer.Visible = false;
-
-        layer = map.AddLayer(MapPath("MAPS/GEO/Area.shp"));
-        layer.Symbol.FillColor = Color.WhiteSmoke;
-        //layer.LabelField = "STATE_ABBR";
-        layer.ShowLabels = true;
-        layer.LabelFont.Name = "Verdana";
-        layer.LabelFont.Size = 12;
-        layer.LabelFont.Bold = true;
-        layer.LabelStyle = LabelStyle.PolygonCenter;
-        layer.Description = "Surveyed Area";
+        ListItem item;
+        for (int i = 0; i < 6; i++)
+        {
+            App.inundation[i] = map.AddLayer(MapPath("InundationMap/inundation_day" + i + ".tif"));
+            App.inundation[i].Description = "Inundation Day " + i;
+            App.inundation[i].CoordinateSystem = new AspMap.CoordSystem(CoordSystemCode.PCS_PopularVisualisationMercator);
+            App.inundation[i].Visible = false;
+            item = new ListItem(App.inundation[i].Description, App.inundation[i].Name);
+            item.Selected = App.inundation[i].Visible;
+            innudationList.Items.Add(item);
+        }
+        App.inundation[6] = map.AddLayer(MapPath("InundationMap/null.tif"));
+        App.inundation[6].Description = "Disable inudation map";
+        App.inundation[6].CoordinateSystem = new AspMap.CoordSystem(CoordSystemCode.PCS_PopularVisualisationMercator);
+        App.inundation[6].Visible = false;
+        App.inundation[6].Opacity = 0;
+        item = new ListItem(App.inundation[6].Description, App.inundation[6].Name);
+        item.Selected = App.inundation[6].Visible;
+        innudationList.Items.Add(item);
 
         layer = map.AddLayer(MapPath("MAPS/GEO/Homestead.shp"));
         layer.Symbol.FillColor = Color.FromArgb(178, 178, 178);
@@ -745,16 +729,4 @@ public partial class Kulkandi : System.Web.UI.Page
         }
     }
 
-    protected void Inudation_Day0(object sender, EventArgs e)
-    {
-        if (RadioButton3.Checked)
-        {
-            App.inundation0.Visible = true;
-        }
-        else
-        {
-            App.inundation0.Visible = false;
-        }
-    }
 }
-
