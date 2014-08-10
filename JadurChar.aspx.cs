@@ -35,6 +35,13 @@ public partial class App
 {
         static public GoogleMapsLayer gml = new GoogleMapsLayer();
         static public OSMLayer osmLayer = new OSMLayer("http://a.tile.openstreetmap.org/{z}/{x}/{y}.png");
+        static public AspMap.Layer inundation0 = new AspMap.Layer();
+        static public AspMap.Layer inundation1 = new AspMap.Layer();
+        static public AspMap.Layer inundation2 = new AspMap.Layer();
+        static public AspMap.Layer inundation3 = new AspMap.Layer();
+        static public AspMap.Layer inundation4 = new AspMap.Layer();
+        static public AspMap.Layer inundation5 = new AspMap.Layer();
+
         static public AspMap.Point center = new AspMap.Point();
         static public AspMap.Rectangle extent = new AspMap.Rectangle();
 }
@@ -377,10 +384,10 @@ public partial class Kulkandi : System.Web.UI.Page
     {
         AspMap.Layer layer;
 
-        layer = map.AddLayer(MapPath("InundationMap/Today Inundation Map.jpg"));
-        layer.Description = "Inundation Map Today";
-        layer.CoordinateSystem = CoordSystem.WGS1984;
-        layer.Visible = false;
+        App.inundation0 = map.AddLayer(MapPath("InundationMap/inundation_day0.tif"));
+        App.inundation0.Description = "Inundation Day 0";
+        App.inundation0.CoordinateSystem = new AspMap.CoordSystem(CoordSystemCode.PCS_PopularVisualisationMercator);
+        App.inundation0.Visible = false;
 
         layer = map.AddLayer(MapPath("InundationMap/1Day Inundation Map.jpg"));
         layer.Description = "Inundation Map 1 Today";
@@ -579,7 +586,6 @@ public partial class Kulkandi : System.Web.UI.Page
         layer.Symbol.LineStyle = LineStyle.Solid;
         layer.Description = "Union Name";
 
-
         layer = map.AddLayer(MapPath("MAPS/GEO/Union Boundary.shp"));
         //layer.Symbol.FillColor = Color.FromArgb(178, 178, 178);
         layer.Symbol.LineColor = Color.FromArgb(0, 0, 0);
@@ -597,8 +603,6 @@ public partial class Kulkandi : System.Web.UI.Page
         //layer.CoordinateSystem = CoordSystem.WGS1984;
 
     }
-
-
 
     public DataTable LoadCSV(string fileName)
     {
@@ -741,28 +745,16 @@ public partial class Kulkandi : System.Web.UI.Page
         }
     }
 
-    //protected void ListBox1_SelectedIndexChanged(object sender, EventArgs e)
-    //{
-    //    AspMap.Recordset rs = map["Union"].SearchExpression("UNINAME=\"" + ListBox1.SelectedValue + "\"");
-
-    //    if (!rs.EOF)
-    //    {            
-    //        // zoom to the feature
-    //        map.Extent = rs.RecordExtent;
-
-    //        // highlight the feature
-    //        map.MapShapes.Clear();
-    //        MapShape ms = map.MapShapes.Add(rs.Shape);
-    //        ms.Symbol.FillColor = Color.Yellow;
-    //        ms.Symbol.Size = 2;
-    //    }
-
-    //    if (map.CoordinateSystem == null)
-    //        map.Extent = rs.RecordExtent;
-    //    else
-    //        map.Extent = map.CoordinateSystem.FromWgs84(rs.RecordExtent);
-    //}
-
-
+    protected void Inudation_Day0(object sender, EventArgs e)
+    {
+        if (RadioButton3.Checked)
+        {
+            App.inundation0.Visible = true;
+        }
+        else
+        {
+            App.inundation0.Visible = false;
+        }
+    }
 }
 
